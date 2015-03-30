@@ -74,23 +74,31 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s,s,w,s,w,w,s,w]
 
-def generalSearch(problem, method):
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def generalSearch(problem, method, heuristicFunc=nullHeuristic):
     " General Search Model "
-    dataStructure = {'bfs': util.Queue(), 'dfs': util.Stack()}
+    dataStructure = {'bfs': util.Queue(), 'dfs': util.Stack(), 'ucs':util.PriorityQueue(), 'astar': util.PriorityQueue()}
     visitedStates = []
     fringe = dataStructure[method]
-    fringe.push((problem.getStartState(), [], 0))
+    fringe.push((problem.getStartState(),[],0)) if method == 'bfs' or method == 'dfs' else fringe.push((problem.getStartState(), [], 0), 0)
 
     while not fringe.isEmpty():
         state, path, cost = fringe.pop()
         if problem.isGoalState(state):
-            # print path
             return path
         if state not in visitedStates:
             visitedStates.append(state)
             for nextState, direction, stepCost in problem.getSuccessors(state):
                 if nextState not in visitedStates:
-                    fringe.push((nextState, path + [direction], cost + stepCost))
+                    fx = cost + stepCost + heuristicFunc(nextState, problem) if method == 'astar' else cost + stepCost
+                    if method == 'bfs' or method =='dfs':
+                        fringe.push((nextState, path + [direction], fx)) if method == 'bfs' or method =='dfs' else fringe.push((nextState, path + [direction], cost + stepCost), fx)                       
 
     return []
 
@@ -145,6 +153,7 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
     "*** YOUR CODE HERE ***"
+    """
     visitedStates = []
     fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
@@ -160,18 +169,16 @@ def uniformCostSearch(problem):
                     fringe.push((nextState, path + [direction], cost + stepCost), cost + stepCost)
 
     return []
+    """
+    return generalSearch(problem, method='ucs')
     util.raiseNotDefined()
 
-def nullHeuristic(state, problem=None):
-    """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
-    """
-    return 0
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
+    """
     visitedStates = []
     fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
@@ -190,6 +197,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                     fringe.push((nextState, path + [direction], backwardCost), fx)
 
     return []
+    """
+    return generalSearch(problem, method='astar', heuristicFunc=heuristic)
     util.raiseNotDefined()
 
 
